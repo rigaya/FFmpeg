@@ -1,0 +1,3 @@
+usr/include/*/libavformat
+usr/lib/*/libavformat*.a
+usr/lib/*/pkgconfig/libavformat*.pc

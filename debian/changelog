@@ -1,0 +1,5 @@
+ffmpeg (7:6.0-1) focal; urgency=low
+
+  * ffmpeg v4l2 multi-planar API test 
+
+ -- devnull <devnull@dev.null>  Sat, 15 Apr 2023 09:20:00 +0900

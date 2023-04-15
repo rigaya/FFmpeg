@@ -1,0 +1,104 @@
+name: Build and Release Debian Package
+
+on:
+  push:
+    branches:
+      - v4l2-multiplanar
+  workflow_dispatch:
+
+jobs:
+  build_and_release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Set up QEMU
+      uses: docker/setup-qemu-action@v2
+      with:
+        platforms: linux/arm64
+
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v2
+
+    - name: Create Dockerfile
+      run: |
+        cat <<EOF > Dockerfile
+        # syntax=docker/dockerfile:1
+        FROM ubuntu:20.04 as base
+
+        ENV DEBIAN_FRONTEND=noninteractive
+
+        RUN apt-get update && \
+            apt-get install -y \
+              build-essential \
+              devscripts \
+              debhelper \
+              dh-exec \
+              libtool \
+              pkg-config \
+              libass9 \
+              libass-dev \
+              libvpx6 \
+              libvpx-dev \
+              libfontconfig1 \
+              libfontconfig1-dev \
+              libfreetype6 \
+              libfreetype6-dev \
+              libfribidi0 \
+              libfribidi-dev \
+              libmp3lame0 \
+              libmp3lame-dev \
+              libbluray2 \
+              libbluray-dev \
+              libopus0 \
+              libopus-dev \
+              libsoxr0 \
+              libsoxr-dev \
+              libspeex1 \
+              libspeex-dev \
+              libtwolame0 \
+              libtwolame-dev \
+              libvorbis0a \
+              libvorbis-dev \
+              openssl \
+              libssl-dev \
+              libxml2 \
+              libxml2-dev \
+              libasound2 \
+              libasound2-dev
+
+        COPY . /src
+
+        FROM base as deb_builder
+        WORKDIR /src
+        RUN debuild -us -uc -aarm64 -b
+        EOF
+
+    - name: Build Debian Package
+      run: |
+        docker buildx build --platform linux/arm64 -o type=local,dest=output --target deb_builder -f Dockerfile .
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        name: Release 6.0-${{ github.sha }}
+        tag_name: 6.0-${{ github.sha }}
+        generate_release_notes: true
+        files: |
+          ./output/libavutil58_6.0-1_arm64.deb
+          ./output/libavutil-dev_6.0-1_arm64.deb
+          ./output/libswresample4_6.0-1_arm64.deb
+          ./output/libswresample-dev_6.0-1_arm64.deb
+          ./output/libavcodec60_6.0-1_arm64.deb
+          ./output/libavcodec-dev_6.0-1_arm64.deb
+          ./output/libswscale7_6.0-1_arm64.deb
+          ./output/libswscale-dev_6.0-1_arm64.deb
+          ./output/libavformat60_6.0-1_arm64.deb
+          ./output/libavformat-dev_6.0-1_arm64.deb
+          ./output/libavfilter9_6.0-1_arm64.deb
+          ./output/libavfilter-dev_6.0-1_arm64.deb
+          ./output/libavdevice60_6.0-1_arm64.deb
+          ./output/libavdevice-dev_6.0-1_arm64.deb

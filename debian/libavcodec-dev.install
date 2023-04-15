@@ -1,0 +1,3 @@
+usr/include/*/libavcodec
+usr/lib/*/libavcodec*.a
+usr/lib/*/pkgconfig/libavcodec*.pc

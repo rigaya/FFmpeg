@@ -1,0 +1,3 @@
+usr/include/*/libswresample
+usr/lib/*/libswresample*.a
+usr/lib/*/pkgconfig/libswresample*.pc

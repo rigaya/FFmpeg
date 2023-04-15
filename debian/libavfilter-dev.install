@@ -1,0 +1,3 @@
+usr/include/*/libavfilter
+usr/lib/*/libavfilter*.a
+usr/lib/*/pkgconfig/libavfilter*.pc
