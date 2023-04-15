@@ -1,0 +1,3 @@
+usr/include/*/libswscale
+usr/lib/*/libswscale*.a
+usr/lib/*/pkgconfig/libswscale*.pc

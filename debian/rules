@@ -1,0 +1,83 @@
+#!/usr/bin/make -f
+
+export DH_VERBOSE = 1
+
+# sets DEB_HOST_* variables
+include /usr/share/dpkg/architecture.mk
+
+# Ubuntu ld adds -Bsymbolic-functions by default, but that prevents FFmpeg from building.
+export DEB_LDFLAGS_MAINT_STRIP=-Wl,-Bsymbolic-functions
+
+CONFIG := --prefix=/usr \
+	--toolchain=hardened \
+	--libdir=/usr/lib/$(DEB_HOST_MULTIARCH) \
+	--incdir=/usr/include/$(DEB_HOST_MULTIARCH) \
+	--enable-version3 \
+	--disable-doc \
+	--disable-ffplay \
+	--disable-hwaccels \
+	--disable-postproc \
+	--disable-libxcb \
+	--disable-sndio \
+	--disable-vaapi \
+	--disable-vdpau \
+	--disable-cuda-llvm \
+	--enable-alsa \
+	--enable-iconv \
+	--enable-openssl \
+	--enable-libv4l2 \
+	--enable-libvpx \
+	--enable-libfontconfig \
+	--enable-libfreetype \
+	--enable-libfribidi \
+	--enable-libmp3lame \
+	--enable-libbluray \
+	--enable-libass \
+	--enable-libopus \
+	--enable-libsoxr \
+	--enable-libspeex \
+	--enable-libtwolame \
+	--enable-libvorbis \
+	--enable-libxml2 \
+	--enable-static \
+	--enable-shared
+
+
+# Disable optimizations if requested.
+ifneq (,$(filter $(DEB_BUILD_OPTIONS),noopt))
+	CONFIG += --disable-optimizations
+endif
+
+# Respect CC/CXX from the environment, if they differ from the default.
+# Don't set them if they equal the default, because that disables autodetection needed for cross-building.
+ifneq ($(CC),cc)
+	CONFIG += --cc=$(CC)
+endif
+ifneq ($(CXX),g++)
+	CONFIG += --cxx=$(CXX)
+endif
+
+
+# Set cross-build prefix for compiler, pkg-config...
+# Cross-building also requires to manually set architecture/OS.
+ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+	CONFIG += --cross-prefix=$(DEB_HOST_GNU_TYPE)- \
+		--arch=$(DEB_HOST_ARCH) \
+		--target-os=$(DEB_HOST_ARCH_OS)
+endif
+
+# Use the default debhelper scripts, where possible.
+%:
+	dh $@
+
+override_dh_auto_clean:
+	rm -rf 
+
+override_dh_auto_configure:
+	./configure $(CONFIG)
+
+override_dh_auto_test:
+	
+
+override_dh_shlibdeps:
+	dh_shlibdeps -l$(shell pwd)/libavdevice:$(shell pwd)/libavfilter:$(shell pwd)/libavformat:$(shell pwd)/libavcodec:$(shell pwd)/libswresample:$(shell pwd)/libswscale:$(shell pwd)/libavutil
